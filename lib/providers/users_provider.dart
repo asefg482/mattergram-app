@@ -1,11 +1,26 @@
 import 'package:flutter/foundation.dart';
 import '../models/user.dart';
 import '../services/api_service.dart';
+import '../services/ws_service.dart';
 
 class UsersProvider with ChangeNotifier {
   final Map<String, MattermostUser> _users = {};
   final Map<String, UserStatus> _statuses = {};
   final Set<String> _pendingIds = {};
+
+  void initWs() {
+    WsService().on('status_change', (event) {
+      final data = event.data;
+      if (data != null) {
+        final userId = data['user_id'] as String?;
+        final status = data['status'] as String?;
+        if (userId != null && status != null) {
+          _statuses[userId] = UserStatus(userId: userId, status: status);
+          notifyListeners();
+        }
+      }
+    });
+  }
 
   Map<String, MattermostUser> get users => _users;
   Map<String, UserStatus> get statuses => _statuses;

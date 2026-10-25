@@ -150,8 +150,8 @@ class UiProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  void toggleRightSidebar() {
-    _showRightSidebar = !_showRightSidebar;
+  void toggleRightSidebar([bool? val]) {
+    _showRightSidebar = val ?? !_showRightSidebar;
     notifyListeners();
   }
 
@@ -249,6 +249,8 @@ class UiProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  void closeEditChannelModal() => closeEditChannel();
+
   void showToast(String message, {String? title, bool isError = false}) {
     _toastMessage = message;
     _toastTitle = title;
@@ -269,4 +271,6 @@ class UiProvider with ChangeNotifier {
     _toastTitle = null;
     notifyListeners();
   }
+
+  void clearToast() => dismissToast();
 }

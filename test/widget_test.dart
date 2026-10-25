@@ -1,30 +1,58 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:provider/provider.dart';
 
 import 'package:mattergram/main.dart';
+import 'package:mattergram/providers/auth_provider.dart';
+import 'package:mattergram/providers/chat_provider.dart';
+import 'package:mattergram/providers/ui_provider.dart';
+import 'package:mattergram/providers/users_provider.dart';
+import 'package:mattergram/services/storage_service.dart';
+import 'package:mattergram/utils/themes.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  TestWidgetsFlutterBinding.ensureInitialized();
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+  setUp(() {
+    SharedPreferences.setMockInitialValues({});
+  });
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+  test('Themes preset contains classic-dark', () {
+    final theme = getThemeById('classic-dark');
+    expect(theme.name, 'Telegram Dark');
+    expect(theme.isDark, isTrue);
+    expect(themePresets.length, greaterThanOrEqualTo(7));
+  });
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+  testWidgets('App renders login screen when unauthenticated', (WidgetTester tester) async {
+    final storage = await StorageService.getInstance();
+    final uiProvider = UiProvider();
+    uiProvider.init(storage);
+
+    final usersProvider = UsersProvider();
+    final authProvider = AuthProvider();
+    authProvider.updateDependencies(usersProvider);
+
+    final chatProvider = ChatProvider();
+    chatProvider.updateDependencies(authProvider, usersProvider);
+
+    await tester.pumpWidget(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider<UiProvider>.value(value: uiProvider),
+          ChangeNotifierProvider<UsersProvider>.value(value: usersProvider),
+          ChangeNotifierProvider<AuthProvider>.value(value: authProvider),
+          ChangeNotifierProvider<ChatProvider>.value(value: chatProvider),
+        ],
+        child: const MattergramApp(),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    // Verify Login Screen components
+    expect(find.text('LOG IN'), findsOneWidget);
+    expect(find.byType(TextField), findsNWidgets(2)); // username & password
   });
 }

@@ -204,7 +204,14 @@ class ChatProvider with ChangeNotifier {
   }
 
   // --- Channel Selection & Post Loading ---
-  Future<void> selectChannel(String channelId) async {
+  Future<void> selectChannel(String? channelId) async {
+    if (channelId == null) {
+      _activeChannelId = null;
+      closeThread();
+      notifyListeners();
+      return;
+    }
+
     if (_activeChannelId == channelId) {
       return;
     }
