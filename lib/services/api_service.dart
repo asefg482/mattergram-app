@@ -276,6 +276,14 @@ class ApiService {
     } catch (_) {}
   }
 
+  Future<List<MattermostUser>> getTeamUsers(String teamId, {int page = 0, int perPage = 60}) async {
+    final data = await request('/api/v4/users?in_team=$teamId&page=$page&per_page=$perPage');
+    if (data is List) {
+      return data.whereType<Map<String, dynamic>>().map((u) => MattermostUser.fromJson(u)).toList();
+    }
+    return [];
+  }
+
   Future<List<MattermostUser>> getUsersNotInChannel(String channelId, {String? teamId, int page = 0, int perPage = 60}) async {
     var endpoint = '/api/v4/users?not_in_channel=$channelId&page=$page&per_page=$perPage';
     if (teamId != null && teamId.isNotEmpty) {
