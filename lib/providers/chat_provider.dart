@@ -167,6 +167,15 @@ class ChatProvider with ChangeNotifier {
     }
   }
 
+  void updateChannelInList(MattermostChannel updated) {
+    final idx = _channels.indexWhere((c) => c.id == updated.id);
+    if (idx != -1) {
+      _channels[idx] = updated;
+      _sortChannelsList(_channels);
+      notifyListeners();
+    }
+  }
+
   void _sortChannelsList(List<MattermostChannel> list) {
     list.sort((a, b) {
       if (a.isPinned && !b.isPinned) return -1;
